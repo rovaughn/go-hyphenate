@@ -2,7 +2,9 @@ package hyphenate
 
 import (
 	"bufio"
+	"compress/gzip"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 )
@@ -66,11 +68,22 @@ func LoadDictionary(filename string) (*Dictionary, error) {
 	}
 	defer f.Close()
 
+	var r io.Reader
+	if strings.HasSuffix(filename, ".gz") {
+		gr, err := gzip.NewReader(f)
+		if err != nil {
+			return nil, err
+		}
+		r = gr
+	} else {
+		r = f
+	}
+
 	d := &Dictionary{
 		patterns: make(map[string]pattern),
 	}
 
-	scanner := bufio.NewScanner(f)
+	scanner := bufio.NewScanner(r)
 
 	if !scanner.Scan() {
 		return nil, fmt.Errorf("Expected encoding as first line")

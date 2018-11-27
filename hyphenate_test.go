@@ -38,3 +38,42 @@ func TestSplitWord(t *testing.T) {
 		t.Errorf("%d words were incorrect", count)
 	}
 }
+
+func BenchmarkLoadDictionary(b *testing.B) {
+	stat, err := os.Stat("hyph_en_US.dic")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.SetBytes(stat.Size())
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		LoadDictionary("hyph_en_US.dic")
+	}
+}
+
+func BenchmarkLoadDictionaryGzip(b *testing.B) {
+	stat, err := os.Stat("hyph_en_US.dic.gz")
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.SetBytes(stat.Size())
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		LoadDictionary("hyph_en_US.dic.gz")
+	}
+}
+
+func BenchmarkHyphenate(b *testing.B) {
+	d, err := LoadDictionary("hyph_en_US.dic")
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		d.Hyphenate("electroencephalograph's", "-")
+	}
+}
